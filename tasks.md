@@ -15,9 +15,9 @@
 
 ## 2. 핵심 로직 구현 (src/extension.ts)
 
-- [ ] **`activate` 함수 구현:**
+- [x] **`activate` 함수 구현:**
     - 확장이 활성화될 때 실행될 메인 로직
-- [ ] **운영체제(OS)별 입력 언어 확인 로직 구현:**
+- [x] **운영체제(OS)별 입력 언어 확인 로직 구현:**
     - `process.platform`을 사용하여 현재 OS 확인 (darwin, win32, linux)
     - **macOS (`darwin`):**
         - `defaults read ~/Library/Preferences/com.apple.HIToolbox.plist AppleSelectedInputSources | grep 'KeyboardLayout Name' | cut -d '=' -f 2` 와 같은 셸 명령어를 `child_process.exec`로 실행하여 현재 키보드 레이아웃 확인
@@ -25,9 +25,9 @@
         - Windows에서는 특정 언어 감지를 위한 내장 CLI가 명확하지 않으므로, `PowerShell` 스크립트나 외부 도구(예: `input-method-cli`) 사용을 고려하고, `README.md`에 해당 도구 설치를 안내.
     - **Linux (`linux`):**
         - `gsettings get org.gnome.desktop.input-sources current | cut -d " " -f 2` (GNOME) 또는 `xkb-switch` 와 같은 명령어를 사용하여 확인.
-- [ ] **주기적인 언어 상태 확인:**
+- [x] **주기적인 언어 상태 확인:**
     - `setInterval`을 사용하여 1-2초 간격으로 현재 입력 언어를 지속적으로 확인
-- [ ] **커서 색상 동적 변경 로직:**
+- [x] **커서 색상 동적 변경 로직:**
     - 확인된 입력 언어에 따라 `package.json`에 정의된 색상 값을 가져옴
     - `workspace.getConfiguration('workbench')` API 사용
     - `colorCustomizations` 설정의 `editorCursor.foreground` 값을 `update` 메서드를 통해 동적으로 변경
@@ -35,7 +35,7 @@
 
 ## 3. 기능 개선 및 안정화
 
-- [ ] **`deactivate` 함수 구현:**
+- [x] **`deactivate` 함수 구현:**
     - 확장이 비활성화될 때 `setInterval` 정리 및 커서 색상을 원래대로 복원하는 로직 추가
 - [ ] **에러 핸들링:**
     - 입력 언어 확인 명령어 실행 실패 시 에러 처리

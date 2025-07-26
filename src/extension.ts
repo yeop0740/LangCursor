@@ -1,26 +1,70 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import { exec } from 'child_process';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
+let interval: NodeJS.Timeout | undefined;
+
 export function activate(context: vscode.ExtensionContext) {
+    const config = vscode.workspace.getConfiguration('lang-cursor');
+    const primaryLangColor = config.get<string>('primaryLangColor');
+    const secondaryLangColor = config.get<string>('secondaryLangColor');
+    const checkInterval = config.get<number>('checkInterval');
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "LangCursor" is now active!');
+    interval = setInterval(() => {
+        const platform = process.platform;
+        let command = '';
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('LangCursor.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from LangCursor!');
-	});
+        if (platform === 'darwin') {
+            command = "defaults read ~/Library/Preferences/com.apple.HIToolbox.plist AppleSelectedInputSources | grep 'KeyboardLayout Name' | cut -d '=' -f 2";
+        } else if (platform === 'win32') {
+            // PowerShell command to get current input language
+            command = 'powershell -command "(Get-WinUserLanguageList)[0].LanguageTag"';
+        } else if (platform === 'linux') {
+            command = "gsettings get org.gnome.desktop.input-sources current | cut -d ' ' -f 2";
+        }
 
-	context.subscriptions.push(disposable);
+        if (command) {
+            exec(command, (error, stdout, stderr) => {
+                if (error) {
+                    console.error(`exec error: ${error}`);
+                    return;
+                }
+
+                const currentLayout = stdout.trim();
+                const workbenchConfig = vscode.workspace.getConfiguration('workbench');
+                const colorCustomizations = workbenchConfig.get('colorCustomizations') as { [key: string]: string } | undefined;
+                let newColor;
+
+                // NOTE: This is a simple example. You may need to adjust the condition based on your system's output.
+                if (currentLayout.includes('Korean') || currentLayout.includes('Hangul')) {
+                    newColor = secondaryLangColor;
+                } else {
+                    newColor = primaryLangColor;
+                }
+
+                const newColorCustomizations = { ...(colorCustomizations || {}), 'editorCursor.foreground': newColor };
+                workbenchConfig.update('colorCustomizations', newColorCustomizations, vscode.ConfigurationTarget.Global);
+            });
+        }
+    }, checkInterval);
+
+    context.subscriptions.push({
+        dispose: () => {
+            if (interval) {
+                clearInterval(interval);
+            }
+        }
+    });
 }
 
-// This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+    if (interval) {
+        clearInterval(interval);
+    }
+    // Reset cursor color to default
+    const workbenchConfig = vscode.workspace.getConfiguration('workbench');
+    const colorCustomizations = workbenchConfig.get('colorCustomizations') as { [key: string]: string } | undefined;
+    if (colorCustomizations && colorCustomizations['editorCursor.foreground']) {
+        delete colorCustomizations['editorCursor.foreground'];
+        workbenchConfig.update('colorCustomizations', colorCustomizations, vscode.ConfigurationTarget.Global);
+    }
+}
