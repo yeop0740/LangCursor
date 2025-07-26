@@ -60,7 +60,7 @@
 - [x] **macOS 입력 언어 감지 정확도 개선:**
     - `defaults read ~/Library/Preferences/com.apple.HIToolbox.plist AppleSelectedInputSources` 명령어의 출력 파싱 로직 재검토 및 개선
     - 다른 macOS 입력 소스 감지 방법 탐색 (예: `ioreg` 또는 스크립팅 가능한 다른 API)
-- [ ] **테마별 커서 색상 설정 지원:**
+- [x] **테마별 커서 색상 설정 지원:**
     - `package.json`에 `lang-cursor.primaryLangColor.light` 및 `lang-cursor.primaryLangColor.dark`와 같이 테마별 색상 설정 추가
     - `vscode.window.activeColorTheme` API를 사용하여 현재 활성화된 테마 감지
     - 테마에 따라 적절한 커서 색상 적용 로직 구현
