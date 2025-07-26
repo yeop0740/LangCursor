@@ -28,7 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
             let command = '';
 
             if (platform === 'darwin') {
-                command = "defaults read ~/Library/Preferences/com.apple.HIToolbox.plist AppleSelectedInputSources | grep 'KeyboardLayout Name' | cut -d '=' -f 2";
+                command = "defaults read ~/Library/Preferences/com.apple.HIToolbox.plist AppleCurrentKeyboardLayoutInputSourceID";
             } else if (platform === 'win32') {
                 command = 'powershell -command "(Get-WinUserLanguageList)[0].LanguageTag"';
             } else if (platform === 'linux') {
