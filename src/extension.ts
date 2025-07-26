@@ -8,16 +8,18 @@ export function activate(context: vscode.ExtensionContext) {
     let checkInterval: number;
 
     function updateConfig() {
-        const config = vscode.workspace.getConfiguration('lang-cursor');
-        checkInterval = config.get<number>('checkInterval') || 1000;
+        const config = vscode.workspace.getConfiguration('workbench');
+        checkInterval = config.get<number>('checkInterval') || 500;
     }
 
     updateConfig();
 
     vscode.workspace.onDidChangeConfiguration(e => {
-        if (e.affectsConfiguration('lang-cursor')) {
+        if (e.affectsConfiguration('workbench')) {
             updateConfig();
-            if(interval) clearInterval(interval);
+            if(interval) {
+                clearInterval(interval);
+            }
             startChecking();
         }
     });
@@ -37,7 +39,9 @@ export function activate(context: vscode.ExtensionContext) {
 
             if (!command) {
                 vscode.window.showErrorMessage('LangCursor: Unsupported OS.');
-                if(interval) clearInterval(interval);
+                if(interval) {
+                    clearInterval(interval);
+                };
                 return;
             }
 
@@ -53,7 +57,7 @@ export function activate(context: vscode.ExtensionContext) {
                     return;
                 }
 
-                const config = vscode.workspace.getConfiguration('lang-cursor');
+                const config = vscode.workspace.getConfiguration('workbench');
                 const primaryLangColor = config.get<string>('primaryLangColor') || '#ffffff';
                 const secondaryLangColor = config.get<string>('secondaryLangColor') || '#fbff00';
 
@@ -69,12 +73,18 @@ export function activate(context: vscode.ExtensionContext) {
                 }
 
                 if (newColor && newColor !== lastColor && newColor !== colorCustomizations['editorCursor.foreground']) {
-                    lastColor = newColor;
-                    const newColorCustomizations = { ...colorCustomizations, 'editorCursor.foreground': newColor };
-                    workbenchConfig.update('colorCustomizations', newColorCustomizations, vscode.ConfigurationTarget.Global);
+                    updateCursorColor(newColor);
                 }
             });
         }, checkInterval);
+    }
+
+    function updateCursorColor(newColor: string) {
+        const workbenchConfig = vscode.workspace.getConfiguration('workbench');
+        const colorCustomizations = workbenchConfig.get<{ [key: string]: string }>('colorCustomizations') || {};
+        lastColor = newColor;
+        const newColorCustomizations = { ...colorCustomizations, 'editorCursor.foreground': newColor };
+        workbenchConfig.update('colorCustomizations', newColorCustomizations, vscode.ConfigurationTarget.Global);
     }
 
     startChecking();
