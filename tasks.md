@@ -30,8 +30,7 @@
 - [x] **커서 색상 동적 변경 로직:**
     - 확인된 입력 언어에 따라 `package.json`에 정의된 색상 값을 가져옴
     - `workspace.getConfiguration('workbench')` API 사용
-    - `colorCustomizations` 설정의 `editorCursor.foreground` 값을 `update` 메서드를 통해 동적으로 변경
-    - **주의:** 기존 사용자의 다른 `colorCustomizations` 설정을 덮어쓰지 않도록, 현재 설정을 먼저 읽어온 후 `editorCursor.foreground` 속성만 수정하여 다시 저장.
+    - `colorCustomizations` 설정의 `editorCursor.foreground` 값을 `update` 메서드를 통해 동적으로 변경 - **주의:** 기존 사용자의 다른 `colorCustomizations` 설정을 덮어쓰지 않도록, 현재 설정을 먼저 읽어온 후 `editorCursor.foreground` 속성만 수정하여 다시 저장.
 
 ## 3. 기능 개선 및 안정화
 
@@ -56,3 +55,12 @@
     - 각 OS 환경에서 커서 색상 변경이 잘 동작하는지 테스트
 - [ ] **패키징 및 배포:**
     - `vsce` 도구를 사용하여 확장을 패키징하고 Visual Studio Marketplace에 게시
+
+## 0.0.2 tasks
+- [ ] **macOS 입력 언어 감지 정확도 개선:**
+    - `defaults read ~/Library/Preferences/com.apple.HIToolbox.plist AppleSelectedInputSources` 명령어의 출력 파싱 로직 재검토 및 개선
+    - 다른 macOS 입력 소스 감지 방법 탐색 (예: `ioreg` 또는 스크립팅 가능한 다른 API)
+- [ ] **테마별 커서 색상 설정 지원:**
+    - `package.json`에 `lang-cursor.primaryLangColor.light` 및 `lang-cursor.primaryLangColor.dark`와 같이 테마별 색상 설정 추가
+    - `vscode.window.activeColorTheme` API를 사용하여 현재 활성화된 테마 감지
+    - 테마에 따라 적절한 커서 색상 적용 로직 구현
