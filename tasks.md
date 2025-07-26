@@ -57,7 +57,7 @@
     - `vsce` 도구를 사용하여 확장을 패키징하고 Visual Studio Marketplace에 게시
 
 ## 0.0.2 tasks
-- [ ] **macOS 입력 언어 감지 정확도 개선:**
+- [x] **macOS 입력 언어 감지 정확도 개선:**
     - `defaults read ~/Library/Preferences/com.apple.HIToolbox.plist AppleSelectedInputSources` 명령어의 출력 파싱 로직 재검토 및 개선
     - 다른 macOS 입력 소스 감지 방법 탐색 (예: `ioreg` 또는 스크립팅 가능한 다른 API)
 - [ ] **테마별 커서 색상 설정 지원:**
