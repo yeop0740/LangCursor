@@ -2,50 +2,82 @@ import * as vscode from 'vscode';
 import { exec } from 'child_process';
 
 let interval: NodeJS.Timeout | undefined;
+let lastColor: string | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
-    const config = vscode.workspace.getConfiguration('lang-cursor');
-    const primaryLangColor = config.get<string>('primaryLangColor');
-    const secondaryLangColor = config.get<string>('secondaryLangColor');
-    const checkInterval = config.get<number>('checkInterval');
+    let checkInterval: number;
 
-    interval = setInterval(() => {
-        const platform = process.platform;
-        let command = '';
+    function updateConfig() {
+        const config = vscode.workspace.getConfiguration('lang-cursor');
+        checkInterval = config.get<number>('checkInterval') || 1000;
+    }
 
-        if (platform === 'darwin') {
-            command = "defaults read ~/Library/Preferences/com.apple.HIToolbox.plist AppleSelectedInputSources | grep 'KeyboardLayout Name' | cut -d '=' -f 2";
-        } else if (platform === 'win32') {
-            // PowerShell command to get current input language
-            command = 'powershell -command "(Get-WinUserLanguageList)[0].LanguageTag"';
-        } else if (platform === 'linux') {
-            command = "gsettings get org.gnome.desktop.input-sources current | cut -d ' ' -f 2";
+    updateConfig();
+
+    vscode.workspace.onDidChangeConfiguration(e => {
+        if (e.affectsConfiguration('lang-cursor')) {
+            updateConfig();
+            if(interval) clearInterval(interval);
+            startChecking();
         }
+    });
 
-        if (command) {
+    function startChecking() {
+        interval = setInterval(() => {
+            const platform = process.platform;
+            let command = '';
+
+            if (platform === 'darwin') {
+                command = "defaults read ~/Library/Preferences/com.apple.HIToolbox.plist AppleSelectedInputSources | grep 'KeyboardLayout Name' | cut -d '=' -f 2";
+            } else if (platform === 'win32') {
+                command = 'powershell -command "(Get-WinUserLanguageList)[0].LanguageTag"';
+            } else if (platform === 'linux') {
+                command = "gsettings get org.gnome.desktop.input-sources current | cut -d ' ' -f 2";
+            }
+
+            if (!command) {
+                vscode.window.showErrorMessage('LangCursor: Unsupported OS.');
+                if(interval) clearInterval(interval);
+                return;
+            }
+
             exec(command, (error, stdout, stderr) => {
                 if (error) {
-                    console.error(`exec error: ${error}`);
+                    console.error(`LangCursor exec error: ${error.message}`);
+                    // Optionally, show a less intrusive error message
+                    // vscode.window.setStatusBarMessage('LangCursor: Could not determine language.', 5000);
+                    return;
+                }
+                if (stderr) {
+                    console.error(`LangCursor stderr: ${stderr}`);
                     return;
                 }
 
+                const config = vscode.workspace.getConfiguration('lang-cursor');
+                const primaryLangColor = config.get<string>('primaryLangColor') || '#ffffff';
+                const secondaryLangColor = config.get<string>('secondaryLangColor') || '#fbff00';
+
                 const currentLayout = stdout.trim();
                 const workbenchConfig = vscode.workspace.getConfiguration('workbench');
-                const colorCustomizations = workbenchConfig.get('colorCustomizations') as { [key: string]: string } | undefined;
+                const colorCustomizations = workbenchConfig.get<{ [key: string]: string }>('colorCustomizations') || {};
+                
                 let newColor;
-
-                // NOTE: This is a simple example. You may need to adjust the condition based on your system's output.
-                if (currentLayout.includes('Korean') || currentLayout.includes('Hangul')) {
+                if (currentLayout.toLowerCase().includes('korean') || currentLayout.toLowerCase().includes('hangul')) {
                     newColor = secondaryLangColor;
                 } else {
                     newColor = primaryLangColor;
                 }
 
-                const newColorCustomizations = { ...(colorCustomizations || {}), 'editorCursor.foreground': newColor };
-                workbenchConfig.update('colorCustomizations', newColorCustomizations, vscode.ConfigurationTarget.Global);
+                if (newColor && newColor !== lastColor && newColor !== colorCustomizations['editorCursor.foreground']) {
+                    lastColor = newColor;
+                    const newColorCustomizations = { ...colorCustomizations, 'editorCursor.foreground': newColor };
+                    workbenchConfig.update('colorCustomizations', newColorCustomizations, vscode.ConfigurationTarget.Global);
+                }
             });
-        }
-    }, checkInterval);
+        }, checkInterval);
+    }
+
+    startChecking();
 
     context.subscriptions.push({
         dispose: () => {
@@ -60,11 +92,16 @@ export function deactivate() {
     if (interval) {
         clearInterval(interval);
     }
-    // Reset cursor color to default
+    
     const workbenchConfig = vscode.workspace.getConfiguration('workbench');
-    const colorCustomizations = workbenchConfig.get('colorCustomizations') as { [key: string]: string } | undefined;
+    const colorCustomizations = workbenchConfig.get<{ [key: string]: string }>('colorCustomizations');
+
     if (colorCustomizations && colorCustomizations['editorCursor.foreground']) {
-        delete colorCustomizations['editorCursor.foreground'];
-        workbenchConfig.update('colorCustomizations', colorCustomizations, vscode.ConfigurationTarget.Global);
+        // Only revert if the color was set by this extension
+        if (lastColor && colorCustomizations['editorCursor.foreground'] === lastColor) {
+             const { 'editorCursor.foreground': _, ...rest } = colorCustomizations;
+             workbenchConfig.update('colorCustomizations', rest, vscode.ConfigurationTarget.Global);
+        }
     }
+    lastColor = undefined;
 }
