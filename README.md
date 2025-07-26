@@ -1,71 +1,66 @@
-# LangCursor README
+# LangCursor - Input Language-based Cursor Color
 
-This is the README for your extension "LangCursor". After writing up a brief description, we recommend including the following sections.
+![LangCursor Demo](https://raw.githubusercontent.com/your-username/lang-cursor/main/images/demo.gif) <!-- Replace with your actual demo GIF -->
+
+**LangCursor** is a Visual Studio Code extension that changes the color of your editor cursor based on the current input language. This provides an intuitive, visual cue to instantly know whether you're about to type in your primary or secondary language, reducing typing errors and improving workflow.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+- **Automatic Language Detection**: Monitors your system's current input source.
+- **Customizable Colors**: Easily set your preferred cursor colors for both primary and secondary languages via VS Code settings.
+- **Real-time Updates**: The cursor color changes instantly as you switch input languages.
+- **Cross-Platform Support**: Works on macOS, Windows, and Linux.
+- **Lightweight & Efficient**: Runs in the background with minimal performance impact.
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+This extension relies on shell commands to detect the active input language. 
+
+- **macOS**: No additional dependencies required.
+- **Windows**: No additional dependencies required. The extension uses a built-in PowerShell command.
+- **Linux (GNOME)**: The `gsettings` command-line tool is required, which is typically pre-installed on GNOME-based distributions.
+- **Linux (Other)**: You may need to install a tool like `xkb-switch`. The command can be customized in the future if needed.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
+Customize the cursor colors and check interval by navigating to `File > Preferences > Settings` and searching for "LangCursor".
 
 This extension contributes the following settings:
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+- `lang-cursor.primaryLangColor`: The cursor color for your primary language (e.g., English). 
+  - **Default**: `#ffffff` (White)
+- `lang-cursor.secondaryLangColor`: The cursor color for your secondary language (e.g., Korean).
+  - **Default**: `#fbff00` (Yellow)
+- `lang-cursor.checkInterval`: The interval in milliseconds at which to check the current input language.
+  - **Default**: `1000` (1 second)
+
+Example `settings.json` configuration:
+
+```json
+{
+    "lang-cursor.primaryLangColor": "#d4d4d4",
+    "lang-cursor.secondaryLangColor": "#ff6347",
+    "lang-cursor.checkInterval": 500
+}
+```
+
+## How It Works
+
+The extension periodically runs a system-specific command to get the current keyboard layout/input source. Based on the output, it updates the `editorCursor.foreground` color in your VS Code's `workbench.colorCustomizations` setting.
+
+- **macOS**: `defaults read ~/Library/Preferences/com.apple.HIToolbox.plist AppleSelectedInputSources | grep 'KeyboardLayout Name'`
+- **Windows**: `powershell -command "(Get-WinUserLanguageList)[0].LanguageTag"`
+- **Linux**: `gsettings get org.gnome.desktop.input-sources current`
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+- On some systems, there might be a slight delay between switching the language and the cursor color changing, depending on the `checkInterval` setting.
+- The language detection for Windows and Linux might not cover all possible system configurations. If you encounter issues, please open an issue on GitHub.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+See the [CHANGELOG.md](CHANGELOG.md) file for details on each release.
 
 ---
 
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+**Enjoy a more colorful and productive coding experience!**
