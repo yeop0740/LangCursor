@@ -44,7 +44,7 @@
         },
         "lang-cursor.checkInterval": {
           "type": "number",
-          "default": 1000,
+          "default": 200,
           "description": "Check interval in milliseconds."
         }
       }
