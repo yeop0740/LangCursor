@@ -6,9 +6,12 @@ let lastColor: string | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
     let checkInterval: number;
+    const originWorkbenchConfig = vscode.workspace.getConfiguration('workbench');
+    const originColorCustomizations = originWorkbenchConfig.get<{ [key: string]: string }>('colorCustomizations')!;
+    const originCursorColor = originColorCustomizations['editorCursor.foreground'];
 
     function updateConfig() {
-        const config = vscode.workspace.getConfiguration('workbench');
+        const config = vscode.workspace.getConfiguration('lang-cursor');
         checkInterval = config.get<number>('checkInterval') || 500;
     }
 
@@ -56,20 +59,33 @@ export function activate(context: vscode.ExtensionContext) {
                     console.error(`LangCursor stderr: ${stderr}`);
                     return;
                 }
+                const workbenchConfig = vscode.workspace.getConfiguration('workbench');
+                const themeConfig = workbenchConfig.get<string>('colorTheme')!;
 
-                const config = vscode.workspace.getConfiguration('workbench');
-                const primaryLangColor = config.get<string>('primaryLangColor') || '#ffffff';
-                const secondaryLangColor = config.get<string>('secondaryLangColor') || '#fbff00';
+                const config = vscode.workspace.getConfiguration('lang-cursor');
+                const primaryLangColor = config.get<{light: string, dark: string}>('primaryLangColor')!;
+                const secondaryLangColor = config.get<{light: string, dark: string}>('secondaryLangColor')!;
+                let primaryCursorColor: string;
+                let secondaryCursorColor: string;
+                if (themeConfig.toLowerCase().includes('light')) {
+                    primaryCursorColor = primaryLangColor.light;
+                    secondaryCursorColor = secondaryLangColor.light;
+                } else if (themeConfig.toLowerCase().includes('dark')) {
+                    primaryCursorColor = primaryLangColor.dark;
+                    secondaryCursorColor = secondaryLangColor.dark;
+                } else {
+                    primaryCursorColor = originCursorColor;
+                    secondaryCursorColor = originCursorColor;
+                }
 
                 const currentLayout = stdout.trim();
-                const workbenchConfig = vscode.workspace.getConfiguration('workbench');
-                const colorCustomizations = workbenchConfig.get<{ [key: string]: string }>('colorCustomizations') || {};
+                const colorCustomizations = workbenchConfig.get<{ [key: string]: string }>('colorCustomizations')!;
                 
                 let newColor;
                 if (currentLayout.toLowerCase().includes('korean') || currentLayout.toLowerCase().includes('hangul')) {
-                    newColor = secondaryLangColor;
+                    newColor = secondaryCursorColor;
                 } else {
-                    newColor = primaryLangColor;
+                    newColor = primaryCursorColor;
                 }
 
                 if (newColor && newColor !== lastColor && newColor !== colorCustomizations['editorCursor.foreground']) {
