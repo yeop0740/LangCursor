@@ -24,22 +24,22 @@
       "properties": {
         "lang-cursor.primaryLangColor.light": {
           "type": "string",
-          "default": "#ffffff",
+          "default": "#000000",
           "description": "Primary language cursor color for light themes."
         },
         "lang-cursor.primaryLangColor.dark": {
           "type": "string",
-          "default": "#000000",
+          "default": "#ffffff",
           "description": "Primary language cursor color for dark themes."
         },
         "lang-cursor.secondaryLangColor.light": {
           "type": "string",
-          "default": "#fbff00",
+          "default": "#ff1493",
           "description": "Secondary language cursor color for light themes."
         },
         "lang-cursor.secondaryLangColor.dark": {
           "type": "string",
-          "default": "#00ff00",
+          "default": "#34FF13",
           "description": "Secondary language cursor color for dark themes."
         },
         "lang-cursor.checkInterval": {
